@@ -472,6 +472,19 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Function to build share URLs for an activity
+  function buildShareLinks(name, description) {
+    const shareText = encodeURIComponent(
+      `Check out "${name}" at Mergington High School! ${description}`
+    );
+    const shareUrl = encodeURIComponent(window.location.href);
+    return {
+      whatsapp: `https://wa.me/?text=${shareText}%20${shareUrl}`,
+      twitter: `https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`,
+    };
+  }
+
   // Function to render a single activity card
   function renderActivityCard(name, details) {
     const activityCard = document.createElement("div");
@@ -498,6 +511,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Format the schedule using the new helper function
     const formattedSchedule = formatSchedule(details);
+
+    // Build share links
+    const shareLinks = buildShareLinks(name, details.description);
 
     // Create activity tag
     const tagHtml = `
@@ -569,6 +585,15 @@ document.addEventListener("DOMContentLoaded", () => {
         `
         }
       </div>
+      <div class="share-section">
+        <button class="share-toggle" aria-label="Share ${name}">📤 Share</button>
+        <div class="share-options hidden">
+          <a href="${shareLinks.whatsapp}" class="share-btn whatsapp" target="_blank" rel="noopener noreferrer" title="Share on WhatsApp">💬 WhatsApp</a>
+          <a href="${shareLinks.twitter}" class="share-btn twitter" target="_blank" rel="noopener noreferrer" title="Share on X (Twitter)">🐦 Twitter</a>
+          <a href="${shareLinks.facebook}" class="share-btn facebook" target="_blank" rel="noopener noreferrer" title="Share on Facebook">📘 Facebook</a>
+          <button class="share-btn copy-link" title="Copy link to clipboard">🔗 Copy Link</button>
+        </div>
+      </div>
     `;
 
     // Add click handlers for delete buttons
@@ -586,6 +611,31 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     }
+
+    // Add click handler for share toggle
+    const shareToggle = activityCard.querySelector(".share-toggle");
+    shareToggle.addEventListener("click", () => {
+      const shareOptions = activityCard.querySelector(".share-options");
+      shareOptions.classList.toggle("hidden");
+    });
+
+    // Add click handler for copy link button
+    const copyLinkBtn = activityCard.querySelector(".copy-link");
+    copyLinkBtn.addEventListener("click", async () => {
+      const text = `Check out "${name}" at Mergington High School! ${details.description} ${window.location.href}`;
+      try {
+        await navigator.clipboard.writeText(text);
+        copyLinkBtn.textContent = "✓ Copied!";
+        setTimeout(() => {
+          copyLinkBtn.textContent = "🔗 Copy Link";
+        }, 2000);
+      } catch (err) {
+        copyLinkBtn.textContent = "Copy failed";
+        setTimeout(() => {
+          copyLinkBtn.textContent = "🔗 Copy Link";
+        }, 2000);
+      }
+    });
 
     activitiesList.appendChild(activityCard);
   }
